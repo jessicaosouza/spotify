@@ -19,19 +19,19 @@ export const useAuthStore = defineStore('auth', {
 		getToken: state => state.session?.access_token ?? null,
 		getPlaylists: state => {
 			if (state.playlists) {
-				return state.playlists.items;
+				return state.playlists?.items;
 			}
 			return [];
 		},
 		getTopArtists: state => {
 			if (state.top_artists) {
-				return state.top_artists.items;
+				return state.top_artists?.items.slice(0, 7);
 			}
 			return [];
 		},
 		getTopTracks: state => {
 			if (state.top_tracks) {
-				return state.top_tracks.items;
+				return state.top_tracks?.items.slice(0, 6);
 			}
 			return [];
 		},
@@ -49,14 +49,17 @@ export const useAuthStore = defineStore('auth', {
 			await storage.init();
 			try {
 				const sessionData = await storage.hasActiveSession();
+
 				if (!sessionData) {
 					this.session = null;
 					return;
 				}
-				if (isTokenExpired(sessionData.expires)) {
-					const renewed = await refreshToken();
+				if (isTokenExpired(sessionData.expiry)) {
+					const renewed = await refreshToken(
+						sessionData.refresh_token,
+					);
 					if (!renewed) {
-						logout();
+						storage.dropSession();
 						return false;
 					}
 				}
@@ -80,11 +83,12 @@ export const useAuthStore = defineStore('auth', {
 
 			if (cached) {
 				cached.value = JSON.parse(cached.value);
-				this.playlists = cached;
+				this.playlists = cached.value;
 			} else {
 				const response = await api.get(
 					`users/${this.session.user.id}/playlists`,
 				);
+
 				this.playlists = response;
 
 				if (response) {
@@ -112,9 +116,9 @@ export const useAuthStore = defineStore('auth', {
 			}
 
 			if (category === 'artists') {
-				this.top_artists = cached;
+				this.top_artists = cached.value;
 			} else {
-				this.top_tracks = cached;
+				this.top_tracks = cached.value;
 			}
 			this.loading = false;
 		},

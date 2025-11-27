@@ -24,7 +24,6 @@ export const api = {
 		try {
 			const body = await fetch(`${BASE_URL}/${endpoint}`, payload);
 			const response = await body.json();
-			console.log('response: ', response);
 			if (response.error) {
 				console.error(
 					'Erro ao realizar parsear get request: ',

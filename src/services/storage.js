@@ -132,7 +132,6 @@ const dropSession = async () => {
 		const request = indexedDB.deleteDatabase(DB_NAME);
 
 		request.onsuccess = () => {
-			console.log('Banco excluído com sucesso!');
 			resolve();
 		};
 

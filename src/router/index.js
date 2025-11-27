@@ -7,7 +7,7 @@ import {getToken} from '../Helpers/auth';
 const routes = [
 	{path: '/', name: 'home', component: Home},
 	{
-		path: '/search',
+		path: '/search/:query?',
 		name: 'search',
 		component: () => import('../pages/Search.vue'),
 	},
@@ -39,9 +39,9 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
 	const authStore = useAuthStore();
 
-	if (!authStore.initialized) {
-		await authStore.checkSession();
-	}
+	// if (!authStore.initialized) {
+	await authStore.checkSession();
+	// }
 
 	if (!to.meta.requiresAuth) {
 		return next();

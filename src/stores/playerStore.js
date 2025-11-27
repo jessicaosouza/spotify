@@ -7,33 +7,74 @@ export const usePlayerStore = defineStore('player', {
 		isPlaying: false,
 		currentTrack: null,
 		currentPlaylist: [],
+		currentTime: 0,
+		duration: 0,
+		volume: 50,
+		previousVolume: 50,
 	}),
 	getters: {
 		activeTrackId: state => state.currentTrack?.id,
+		name: state => state.currentTrack?.name,
+		artists: state =>
+			state.currentTrack?.artists.map(a => a.name).join(', '),
+		albumCover: state => state.currentTrack?.album.images[0]?.url,
 	},
 	actions: {
 		init() {
-			audio.volume = 0.5;
-			audio.addEventListener('ended', () => {
-				this.nextTrack();
+			audio.volume = this.volume / 100;
+
+			audio.addEventListener('timeupdate', () => {
+				this.currentTime = audio.currentTime;
+				this.duration = audio.duration || 0;
 			});
 
-			// ✅ ADICIONAR: Configurar track demo inicial
+			audio.addEventListener('loadedmetadata', () => {
+				this.duration = audio.duration;
+				this.currentTime = 0;
+			});
+
 			this.currentTrack = {
 				id: 'demo-1',
-				name: 'Demo Track',
-				artists: [{name: 'Artist Demo'}],
+				name: 'On & On',
+				artists: [
+					{name: 'Cartoon'},
+					{name: 'Jéja'},
+					{name: 'Daniel Levi'},
+				],
 				album: {
 					name: 'Demo Album',
 					images: [{url: '/demo-cover.jpg'}],
 				},
 			};
 
-			// ✅ Configurar o src do áudio
 			audio.src = '/demo.mp3';
-			audio.load(); // Força o carregamento
+			audio.load();
+		},
 
-			console.log('✅ Player inicializado com track demo');
+		setVolume(value) {
+			// Garante que fique entre 0 e 100
+			let newVolume = Math.max(0, Math.min(100, value));
+
+			this.volume = newVolume;
+			audio.volume = newVolume / 100; // API Nativa usa 0.0 a 1.0
+		},
+
+		toggleMute() {
+			if (this.volume > 0) {
+				// Vai mutar
+				this.previousVolume = this.volume;
+				this.setVolume(0);
+			} else {
+				// Vai desmutar (volta para o anterior ou 50 se for zero)
+				this.setVolume(this.previousVolume || 50);
+			}
+		},
+
+		seek(percentage) {
+			if (!this.duration) return;
+
+			const timeToSeek = (this.duration * percentage) / 100;
+			audio.currentTime = timeToSeek;
 		},
 
 		async playTrack(track, playlist = []) {
@@ -63,29 +104,17 @@ export const usePlayerStore = defineStore('player', {
 		},
 
 		async togglePlay() {
-			// ✅ ADICIONAR: Verificação de segurança
-			if (!audio.src) {
-				console.warn(
-					'⚠️ Nenhum áudio carregado! Configure uma track primeiro.',
-				);
-				return;
-			}
-
 			if (audio.paused) {
 				this.isPlaying = true;
 				try {
 					await audio.play();
-					console.log('▶️ Tocando...');
 				} catch (error) {
-					if (error.name !== 'AbortError') {
-						console.error('Erro no toggle:', error);
-						this.isPlaying = false;
-					}
+					console.error('Erro no toggle:', error);
+					this.isPlaying = false;
 				}
 			} else {
 				audio.pause();
 				this.isPlaying = false;
-				console.log('⏸️ Pausado');
 			}
 		},
 

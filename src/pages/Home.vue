@@ -1,8 +1,10 @@
 <script setup>
+import AppArtistCard from '../components/AppArtistCard.vue';
 import AppContainer from '../components/AppContainer.vue';
-import AppPlaylistCard from '../components/AppPlaylistCard.vue';
+import AppSidebar from '../components/AppSidebar.vue';
+import AppTrackCard from '../components/AppTrackCard.vue';
 import { useAuthStore } from '../stores/authStore'
-import { Plus } from 'lucide-vue-next';
+
 import { getLoginURL } from '../Helpers/auth'
 import { onMounted, watch } from 'vue';
 
@@ -10,18 +12,6 @@ const authStore = useAuthStore()
 const spotifyLogin = async () => {
     window.location.href = await getLoginURL()
 }
-
-watch(
-    () => authStore.session,
-    (newSession) => {
-        if (newSession && newSession.access_token) {
-            authStore.loadPlaylists();
-            authStore.loadTopItems('artists');
-            authStore.loadTopItems('tracks');
-        }
-    },
-    { immediate: true }
-);
 
 //usar para explicar o problema do race condition
 // onMounted(() => {
@@ -42,24 +32,20 @@ watch(
         </div>
         <div v-else class="w-full pt-16 px-2">
             <div class="flex gap-2">
-                <div class="w-[20%] bg-sblack p-4 max-h-[86vh] rounded-lg">
-                    <div class="flex items-center justify-between">
-                        <p class="text-white font-regular">Sua Biblioteca</p>
-                        <button type="button"
-                            class="text-white text-sm px-4 py-2 rounded-full flex items-center gap-2 bg-sblack-200">
-                            <plus class="text-sgray-100 size-5" />
-                            <span>Criar</span>
-                        </button>
+                <app-sidebar />
+                <div class="w-[80%] bg-sblack overflow-y-auto overflow-x-hidden p-10 h-[83vh] rounded-lg ">
+                    <div class="pt-6">
+                        <p class="text-white font-semibold text-xl pb-6">Top Artistas Recomendados</p>
+                        <div class="flex items-center">
+                            <app-artist-card v-for="item in authStore.getTopArtists" :key="item.id" :item="item" />
+                        </div>
                     </div>
-                    <p class="text-sgray-100 mt-4 w-fit text-xs px-4 py-2 rounded-full bg-sblack-200">
-                        Playlists
-                    </p>
-                    {{ }}
-                    <div class="pt-4">
-                        <app-playlist-card v-for="item in authStore.getPlaylists" :key="item.id" :item="item" />
+                    <div class="pt-6">
+                        <p class="text-white font-semibold text-xl p-4">Recomendados para Você</p>
+                        <div class="flex items-center">
+                            <app-track-card v-for="item in authStore.getTopTracks" :key="item.id" :item="item" />
+                        </div>
                     </div>
-                </div>
-                <div class="w-[80%] bg-sblack p-4 min-h-[86vh] rounded-lg">
                 </div>
             </div>
         </div>
