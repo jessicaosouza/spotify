@@ -10,6 +10,7 @@ const routes = [
 		path: '/search/:query?',
 		name: 'search',
 		component: () => import('../pages/Search.vue'),
+		meta: {requiresAuth: true},
 	},
 	{
 		path: '/callback',
@@ -39,22 +40,24 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
 	const authStore = useAuthStore();
 
-	// if (!authStore.initialized) {
-	await authStore.checkSession();
-	// }
-
-	if (!to.meta.requiresAuth) {
-		return next();
+	// só checa sessão se ainda não tiver carregado
+	if (!authStore.session) {
+		await authStore.checkSession();
 	}
 
-	if (authStore.session) {
-		next();
-	} else {
-		next({
+	// se a rota exige auth e não tem sessão -> manda pra home
+	if (to.meta.requiresAuth && !authStore.session) {
+		return next({
 			name: 'home',
+			query: {
+				redirect: to.fullPath,
+			},
 			state: {error: 'Sessão expirada. Faça login novamente'},
 		});
 	}
+
+	// qualquer outro caso segue normal
+	next();
 });
 
 export default router;
