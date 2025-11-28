@@ -1,6 +1,7 @@
 import {defineStore} from 'pinia';
 import {storage} from '../services/storage';
 import {api} from '../services/api';
+import {useRoute} from 'vue-router';
 import {isTokenExpired, refreshToken} from '../Helpers/auth';
 
 export const useAuthStore = defineStore('auth', {
@@ -59,9 +60,16 @@ export const useAuthStore = defineStore('auth', {
 						sessionData.refresh_token,
 					);
 					if (!renewed) {
-						storage.dropSession();
+						this.resetSession();
+						await storage.dropSession();
+						const router = useRoute();
+						router.push({name: 'home'});
 						return false;
 					}
+
+					const updatedSession = await storage.hasActiveSession();
+					this.session = updatedSession;
+					return true;
 				}
 				this.session = sessionData;
 			} catch (error) {

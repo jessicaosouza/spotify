@@ -90,6 +90,12 @@ export const refreshToken = async refresh_token => {
 
 	try {
 		const body = await fetch(url, payload);
+
+		if (!body.ok) {
+			console.error('Erro ao renovar token:', body.status);
+			return false;
+		}
+
 		const response = await body.json();
 
 		if (response.error) {
