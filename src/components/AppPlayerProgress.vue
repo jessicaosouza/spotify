@@ -4,7 +4,6 @@ import { usePlayerStore } from '../stores/playerStore';
 
 const player = usePlayerStore();
 
-// Pequeno ajuste: Se não tiver música, retorna "-:--" para ficar igual ao print 2
 const formatTime = (seconds) => {
     if (seconds === undefined || seconds === null || isNaN(seconds) || !player.currentTrack) return '-:--';
     const minutes = Math.floor(seconds / 60);
@@ -18,7 +17,6 @@ const progressPercentage = computed(() => {
 });
 
 const handleSeek = (event) => {
-    // Bloqueia o clique se não tiver música
     if (!player.currentTrack) return;
 
     const progressBar = event.currentTarget;

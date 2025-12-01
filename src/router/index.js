@@ -40,12 +40,10 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
 	const authStore = useAuthStore();
 
-	// só checa sessão se ainda não tiver carregado
 	if (!authStore.session) {
 		await authStore.checkSession();
 	}
 
-	// se a rota exige auth e não tem sessão -> manda pra home
 	if (to.meta.requiresAuth && !authStore.session) {
 		return next({
 			name: 'home',
@@ -56,7 +54,6 @@ router.beforeEach(async (to, from, next) => {
 		});
 	}
 
-	// qualquer outro caso segue normal
 	next();
 });
 

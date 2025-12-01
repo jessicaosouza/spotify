@@ -4,8 +4,8 @@ import { usePlayerStore } from '../stores/playerStore';
 import { Volume2, Volume1, VolumeX } from 'lucide-vue-next';
 
 const player = usePlayerStore();
-const progressBarRef = ref(null); // Referência para o elemento HTML da barra
-let isDragging = false; // Flag para saber se está arrastando
+const progressBarRef = ref(null);
+let isDragging = false;
 
 const VolumeIcon = computed(() => {
     if (player.volume === 0) return VolumeX;
@@ -13,35 +13,28 @@ const VolumeIcon = computed(() => {
     return Volume2;
 });
 
-// Lógica Principal de Cálculo
 const updateVolume = (event) => {
     if (!progressBarRef.value) return;
 
     const rect = progressBarRef.value.getBoundingClientRect();
-    const clickX = event.clientX; // Posição X do mouse na tela
+    const clickX = event.clientX;
     const width = rect.width;
     const startX = rect.left;
 
-    // Calcula a posição relativa dentro da barra
     let newPercentage = ((clickX - startX) / width) * 100;
-
-    // Trava entre 0 e 100 (Clamp)
     newPercentage = Math.max(0, Math.min(100, newPercentage));
 
     player.setVolume(newPercentage);
 };
 
-// 1. Começa o arraste (MouseDown)
 const startDrag = (event) => {
     isDragging = true;
-    updateVolume(event); // Já atualiza onde clicou
+    updateVolume(event);
 
-    // Adiciona ouvintes globais para continuar arrastando mesmo se sair da div
     document.addEventListener('mousemove', onDrag);
     document.addEventListener('mouseup', stopDrag);
 };
 
-// 2. Durante o arraste (MouseMove)
 const onDrag = (event) => {
     if (isDragging) {
         updateVolume(event);
